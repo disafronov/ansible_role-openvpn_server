@@ -3,9 +3,17 @@
     name: openvpn
     state: present
 
-- name: Create OpenVPN config directory (+ccd)
+- name: Disable global openvpn service
+  ansible.builtin.systemd:
+    state: stopped
+    enabled: false
+    masked: true
+    daemon_reload: true
+    name: "openvpn.service"
+
+- name: Create OpenVPN config directory
   ansible.builtin.file:
-    path: "/etc/openvpn/{{ openvpn_server.name }}/ccd"
+    path: "/etc/openvpn/{{ openvpn_server.name }}"
     state: directory
     mode: '0700'
     owner: root
@@ -164,6 +172,14 @@
         regexp: '^crl-verify\s+(.*)$'
         line: "crl-verify /etc/openvpn/{{ openvpn_server.name }}/crl.pem"
       changed_when: false
+
+- name: Create OpenVPN client config directory
+  ansible.builtin.file:
+    path: "/etc/openvpn/{{ openvpn_server.name }}/ccd"
+    state: directory
+    mode: '0700'
+    owner: root
+    group: root
 
 - name: Set client config directory location in temporary config
   ansible.builtin.lineinfile:
