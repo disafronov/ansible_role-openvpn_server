@@ -3,36 +3,21 @@
     name: openvpn
     state: present
 
-- name: Disable global openvpn service
-  ansible.builtin.systemd:
-    state: stopped
-    enabled: false
-    masked: true
-    daemon_reload: true
-    name: "openvpn.service"
-
-- name: Create OpenVPN config directory
+- name: Create OpenVPN server config directory
   ansible.builtin.file:
-    path: "/etc/openvpn/{{ openvpn_server.name }}"
+    path: "/etc/openvpn/server/{{ openvpn_server.name }}"
     state: directory
     mode: '0700'
     owner: root
     group: root
 
-- name: Template OpenVPN temporary config into config directory
+- name: Template OpenVPN server temporary config into config directory
   ansible.builtin.template:
     src: openvpn.conf.j2
-    dest: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
+    dest: "/etc/openvpn/server/{{ openvpn_server.name }}/conf.tmp"
     mode: '0600'
     owner: root
     group: root
-  changed_when: false
-
-- name: Set status location in temporary config
-  ansible.builtin.lineinfile:
-    path: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
-    regexp: '^status\s+(.*)$'
-    line: "status /var/log/openvpn/status-{{ openvpn_server.name }}.log 1"
   changed_when: false
 
 - name: Configure Diffie Hellman
@@ -45,17 +30,17 @@
     - name: Template Diffie Hellman file in config directory
       ansible.builtin.template:
         src: openvpn.dh.j2
-        dest: "/etc/openvpn/{{ openvpn_server.name }}/dh.pem"
+        dest: "/etc/openvpn/server/{{ openvpn_server.name }}/dh.pem"
         mode: '0600'
         owner: root
         group: root
-      notify: (Re)start openvpn service
+      notify: (Re)start openvpn server service
 
     - name: Set Diffie Hellman location in temporary config
       ansible.builtin.lineinfile:
-        path: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
+        path: "/etc/openvpn/server/{{ openvpn_server.name }}/conf.tmp"
         regexp: '^dh\s+(.*)$'
-        line: "dh /etc/openvpn/{{ openvpn_server.name }}/dh.pem"
+        line: "dh /etc/openvpn/server/{{ openvpn_server.name }}/dh.pem"
       changed_when: false
 
 - name: Configure Certificate Authority
@@ -68,17 +53,17 @@
     - name: Template Certificate Authority file in config directory
       ansible.builtin.template:
         src: openvpn.ca.j2
-        dest: "/etc/openvpn/{{ openvpn_server.name }}/ca.crt"
+        dest: "/etc/openvpn/server/{{ openvpn_server.name }}/ca.crt"
         mode: '0600'
         owner: root
         group: root
-      notify: (Re)start openvpn service
+      notify: (Re)start openvpn server service
 
     - name: Set Certificate Authority location in temporary config
       ansible.builtin.lineinfile:
-        path: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
+        path: "/etc/openvpn/server/{{ openvpn_server.name }}/conf.tmp"
         regexp: '^ca\s+(.*)$'
-        line: "ca /etc/openvpn/{{ openvpn_server.name }}/ca.crt"
+        line: "ca /etc/openvpn/server/{{ openvpn_server.name }}/ca.crt"
       changed_when: false
 
 - name: Configure server certificate
@@ -91,17 +76,17 @@
     - name: Template server certificate file in config directory
       ansible.builtin.template:
         src: openvpn.cert.j2
-        dest: "/etc/openvpn/{{ openvpn_server.name }}/server.crt"
+        dest: "/etc/openvpn/server/{{ openvpn_server.name }}/server.crt"
         mode: '0600'
         owner: root
         group: root
-      notify: (Re)start openvpn service
+      notify: (Re)start openvpn server service
 
     - name: Set server certificate location in temporary config
       ansible.builtin.lineinfile:
-        path: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
+        path: "/etc/openvpn/server/{{ openvpn_server.name }}/conf.tmp"
         regexp: '^cert\s+(.*)$'
-        line: "cert /etc/openvpn/{{ openvpn_server.name }}/server.crt"
+        line: "cert /etc/openvpn/server/{{ openvpn_server.name }}/server.crt"
       changed_when: false
 
 - name: Configure server certificate key
@@ -114,17 +99,17 @@
     - name: Template server certificate key file in config directory
       ansible.builtin.template:
         src: openvpn.key.j2
-        dest: "/etc/openvpn/{{ openvpn_server.name }}/server.key"
+        dest: "/etc/openvpn/server/{{ openvpn_server.name }}/server.key"
         mode: '0600'
         owner: root
         group: root
-      notify: (Re)start openvpn service
+      notify: (Re)start openvpn server service
 
     - name: Set server certificate key location in temporary config
       ansible.builtin.lineinfile:
-        path: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
+        path: "/etc/openvpn/server/{{ openvpn_server.name }}/conf.tmp"
         regexp: '^key\s+(.*)$'
-        line: "key /etc/openvpn/{{ openvpn_server.name }}/server.key"
+        line: "key /etc/openvpn/server/{{ openvpn_server.name }}/server.key"
       changed_when: false
 
 - name: Configure tls-auth key
@@ -137,17 +122,17 @@
     - name: Template tls-auth key file in config directory
       ansible.builtin.template:
         src: openvpn.ta.j2
-        dest: "/etc/openvpn/{{ openvpn_server.name }}/ta.key"
+        dest: "/etc/openvpn/server/{{ openvpn_server.name }}/ta.key"
         mode: '0600'
         owner: root
         group: root
-      notify: (Re)start openvpn service
+      notify: (Re)start openvpn server service
 
     - name: Set tls-auth key location in temporary config
       ansible.builtin.lineinfile:
-        path: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
+        path: "/etc/openvpn/server/{{ openvpn_server.name }}/conf.tmp"
         regexp: '^tls-auth\s+(.*)$'
-        line: "tls-auth /etc/openvpn/{{ openvpn_server.name }}/ta.key 0"
+        line: "tls-auth /etc/openvpn/server/{{ openvpn_server.name }}/ta.key 0"
       changed_when: false
 
 - name: Configure Certificate Revocational List
@@ -160,22 +145,22 @@
     - name: Template Certificate Revocational List file in config directory
       ansible.builtin.template:
         src: openvpn.crl.j2
-        dest: "/etc/openvpn/{{ openvpn_server.name }}/crl.pem"
+        dest: "/etc/openvpn/server/{{ openvpn_server.name }}/crl.pem"
         mode: '0600'
         owner: root
         group: root
-      notify: (Re)start openvpn service
+      notify: (Re)start openvpn server service
 
     - name: Set Certificate Revocational List key location in temporary config
       ansible.builtin.lineinfile:
-        path: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
+        path: "/etc/openvpn/server/{{ openvpn_server.name }}/conf.tmp"
         regexp: '^crl-verify\s+(.*)$'
-        line: "crl-verify /etc/openvpn/{{ openvpn_server.name }}/crl.pem"
+        line: "crl-verify /etc/openvpn/server/{{ openvpn_server.name }}/crl.pem"
       changed_when: false
 
 - name: Create OpenVPN client config directory
   ansible.builtin.file:
-    path: "/etc/openvpn/{{ openvpn_server.name }}/ccd"
+    path: "/etc/openvpn/server/{{ openvpn_server.name }}/ccd"
     state: directory
     mode: '0700'
     owner: root
@@ -183,25 +168,25 @@
 
 - name: Set client config directory location in temporary config
   ansible.builtin.lineinfile:
-    path: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
+    path: "/etc/openvpn/server/{{ openvpn_server.name }}/conf.tmp"
     regexp: '^client-config-dir\s+(.*)$'
-    line: "client-config-dir /etc/openvpn/{{ openvpn_server.name }}/ccd"
+    line: "client-config-dir /etc/openvpn/server/{{ openvpn_server.name }}/ccd"
   changed_when: false
 
 - name: Copy temporary config in required place
   ansible.builtin.copy:
-    src: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
-    dest: "/etc/openvpn/{{ openvpn_server.name }}.conf"
+    src: "/etc/openvpn/server/{{ openvpn_server.name }}/conf.tmp"
+    dest: "/etc/openvpn/server/{{ openvpn_server.name }}.conf"
     remote_src: true
     mode: '0600'
     owner: root
     group: root
     backup: true
-  notify: (Re)start openvpn service
+  notify: (Re)start openvpn server service
 
 - name: Delete OpenVPN temporary config
   ansible.builtin.file:
-    path: "/etc/openvpn/{{ openvpn_server.name }}/conf.tmp"
+    path: "/etc/openvpn/server/{{ openvpn_server.name }}/conf.tmp"
     state: absent
   changed_when: false
 
@@ -213,9 +198,9 @@
   with_dict: "{{ openvpn_server.ccd }}"
   ansible.builtin.template:
     src: openvpn.ccd.j2
-    dest: "/etc/openvpn/{{ openvpn_server.name }}/ccd/{{ item.key }}"
+    dest: "/etc/openvpn/server/{{ openvpn_server.name }}/ccd/{{ item.key }}"
     mode: '0600'
     owner: root
     group: root
-  notify: (Re)start openvpn service
+  notify: (Re)start openvpn server service
   no_log: true
